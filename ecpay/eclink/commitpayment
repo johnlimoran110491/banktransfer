@@ -1,0 +1,90 @@
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+ $date = date("Y-m-d H:i:s");
+$d=strtotime("tomorrow");
+$expiryDate= date("Y-m-d h:i:s", $d);
+include('../function/functions.php');
+$broadcast = new Broadcast();
+
+
+$num= (rand(1000000000,9999999999));
+//$messengerid = $_POST['messengerid'];
+//$amount =  $_POST['amount'];
+$s = substr(str_shuffle(str_repeat("ABCDEFGHIJKLMNOPQRSTUVW", 3)), 0, 3);
+$refnumber =$s.$num;
+//$messengerid = $_POST['messengerid'];
+$amount = $_POST['amount'];
+$messengerid = $_POST['messengerid'];
+$ref = 'OBR1330550161';
+try{
+  $soapclient = new SoapClient('https://ecpay.ph/eclink/?wsdl');
+  $param=array('referenceno' => $refnumber );
+
+  $auth = array(
+      'merchantCode' => 'IOT',
+      'merchantKey' => '9B0D557D9BA047279F12AD8C3DCB2AE4'
+    
+  );
+
+
+  $header = new SoapHeader('https://ecpay.ph/eclink','AuthHeader',$auth,false);
+  $soapclient->__setSoapHeaders($header);
+
+
+
+  $response =$soapclient->ConfirmPayment($param);
+
+
+  $array = json_decode(json_encode($response), true);
+
+
+
+  $output ='';
+    foreach($array as $item) {
+      
+      $output ="<table class='table table-striped'><thead><tr><td>ReferenceNo</td><td>Amount</td><td>PaymentStatus</td>
+      <td>TransDate</td>  <td>ExpiryDate</td></tr></thead>";
+ 
+      $item2 = json_decode($item, true);
+
+            foreach($item2 as $new2)
+            {
+        
+
+       
+              $resultCode =$new2['resultCode'];
+              $result =$new2['result'];
+  
+            if($resultCode == '10')
+            {
+              $response ='Failed';
+            }
+            else{
+            
+              $response =array('ref' => $ref, 'amount' => $amount , 'expire' => $expiryDate);
+        
+
+            }
+        
+
+   
+         
+
+        
+            }
+      
+       
+    }
+
+  
+  }catch(Exception $e){
+    echo $e->getMessage();
+  }
+echo  $return = stripslashes(json_encode($response));
+  
+  
+
+
+
